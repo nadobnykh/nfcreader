@@ -2,21 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-
-export function Button({ onClick, children, className }) {
-  return (
-    <button onClick={onClick} className={`px-4 py-2 rounded-lg ${className}`}>
-      {children}
-    </button>
-  );
-}
+import { Button } from "./button";
 
 export default function NFCReader() {
-  const [nfcData, setNfcData] = useState([]);
+  const [nfcData, setNfcData] = useState<string[]>([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const savedData = JSON.parse(localStorage.getItem("nfcData")) || [];
+    const savedData = JSON.parse(localStorage.getItem("nfcData") || "[]") || [];
     setNfcData(savedData);
   }, []);
 
@@ -31,18 +24,18 @@ export default function NFCReader() {
     }
 
     try {
-      const ndef = new NDEFReader();
+      const ndef = new (window as any).NDEFReader();
       await ndef.scan();
       setError("");
       
-      ndef.onreading = (event) => {
+      ndef.onreading = (event: any) => {
         const decoder = new TextDecoder();
         for (const record of event.message.records) {
-          setNfcData((prevData) => [...prevData, decoder.decode(record.data)]);
+          setNfcData((prevData: string[]) => [...prevData, decoder.decode(record.data)]);
         }
       };
     } catch (err) {
-      setError("Error reading NFC: " + err.message);
+      setError("Error reading NFC: " + (err instanceof Error ? err.message : "Unknown error"));
     }
   };
 
